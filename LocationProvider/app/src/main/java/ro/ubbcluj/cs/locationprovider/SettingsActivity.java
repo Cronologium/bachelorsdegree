@@ -75,6 +75,12 @@ public class SettingsActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     PERMISSION_LOCATION_REQUEST);
+            CheckBox check = findViewById(R.id.checkBox);
+            check.setChecked(false);
+            toggled = false;
+            SharedPreferences.Editor editor = locationProviderSettings.edit();
+            editor.putBoolean("location", toggled);
+            editor.apply();
             return;
         }
         if (isAlarmActive()) {
