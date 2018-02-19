@@ -73,7 +73,7 @@ public class FirebaseLocationProvider implements LocationListener {
     public void onLocationChanged(Location location) {
         if (location != null) {
             Log.d(TAG, "Current location is " + location.getLongitude() + " -- " + location.getLatitude());
-            LocationObject locationObject = new LocationObject(user.getEmail(), "" + location.getLatitude(), "" + location.getLongitude(), (new SimpleDateFormat("yyyy-MM-dd|HH:mm:ss")).format(new Date()), Build.VERSION.SDK_INT);
+            LocationObject locationObject = new LocationObject(user.getEmail(), location.getLatitude(), location.getLongitude(), (new SimpleDateFormat("yyyy-MM-dd|HH:mm:ss")).format(new Date()), Build.VERSION.SDK_INT);
             firebaseDatabase.child(user.getUid() + locationObject.getDateTime()).setValue(locationObject);
         }
         this.locationManager.removeUpdates(this);

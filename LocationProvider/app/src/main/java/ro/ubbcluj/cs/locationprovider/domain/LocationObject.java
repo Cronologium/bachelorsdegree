@@ -15,12 +15,12 @@ import java.util.Map;
 @IgnoreExtraProperties
 public class LocationObject {
     private String username;
-    private String latitude;
-    private String longitude;
+    private double latitude;
+    private double longitude;
     private String dateTime;
     private int apiLevel;
 
-    public LocationObject(String username, String latitude, String longitude, String dateTime, int apiLevel) {
+    public LocationObject(String username, double latitude, double longitude, String dateTime, int apiLevel) {
         this.username = username;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -44,19 +44,19 @@ public class LocationObject {
         this.username = username;
     }
 
-    public String getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(String latitude) {
+    public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
-    public String getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(String longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
@@ -75,21 +75,25 @@ public class LocationObject {
 
         LocationObject that = (LocationObject) o;
 
+        if (Double.compare(that.latitude, latitude) != 0) return false;
+        if (Double.compare(that.longitude, longitude) != 0) return false;
+        if (apiLevel != that.apiLevel) return false;
         if (username != null ? !username.equals(that.username) : that.username != null)
-            return false;
-        if (latitude != null ? !latitude.equals(that.latitude) : that.latitude != null)
-            return false;
-        if (longitude != null ? !longitude.equals(that.longitude) : that.longitude != null)
             return false;
         return dateTime != null ? dateTime.equals(that.dateTime) : that.dateTime == null;
     }
 
     @Override
     public int hashCode() {
-        int result = username != null ? username.hashCode() : 0;
-        result = 31 * result + (latitude != null ? latitude.hashCode() : 0);
-        result = 31 * result + (longitude != null ? longitude.hashCode() : 0);
+        int result;
+        long temp;
+        result = username != null ? username.hashCode() : 0;
+        temp = Double.doubleToLongBits(latitude);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(longitude);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
         result = 31 * result + (dateTime != null ? dateTime.hashCode() : 0);
+        result = 31 * result + apiLevel;
         return result;
     }
 
