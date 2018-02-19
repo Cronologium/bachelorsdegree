@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -70,18 +71,25 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void scheduleAlarm() {
+
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSION_LOCATION_REQUEST);
-            CheckBox check = findViewById(R.id.checkBox);
-            check.setChecked(false);
-            toggled = false;
-            SharedPreferences.Editor editor = locationProviderSettings.edit();
-            editor.putBoolean("location", toggled);
-            editor.apply();
-            return;
+            || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            {
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                            PERMISSION_LOCATION_REQUEST);
+                } else {
+                    Toast.makeText(this, "Go to Settings->App->LocationProvider->Permissions and select location to true", Toast.LENGTH_LONG).show();
+                }
+                CheckBox check = findViewById(R.id.checkBox);
+                check.setChecked(false);
+                toggled = false;
+                SharedPreferences.Editor editor = locationProviderSettings.edit();
+                editor.putBoolean("location", toggled);
+                editor.apply();
+                return;
+            }
         }
         if (isAlarmActive()) {
             Log.d(TAG, "Alarm is already active!");
@@ -120,7 +128,7 @@ public class SettingsActivity extends AppCompatActivity {
             minutesString = "1";
         }
         minutes = Integer.parseInt(minutesString);
-        minutes = max(1, min(minutes, 10));
+        minutes = Math.max(1, Math.min(minutes, 10));
         editText.setText(String.valueOf(minutes));
         SharedPreferences.Editor editor = locationProviderSettings.edit();
         editor.putBoolean("location", toggled);
@@ -128,10 +136,12 @@ public class SettingsActivity extends AppCompatActivity {
         editor.apply();
         if (toggled) {
             scheduleAlarm();
-            if (minutes > 1) {
-                Toast.makeText(getApplicationContext(), "Location will be fetched every " + minutes + " minutes!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "Location will be fetched every " + minutes + " minute!", Toast.LENGTH_SHORT).show();
+            if (toggled) {
+                if (minutes > 1) {
+                    Toast.makeText(getApplicationContext(), "Location will be fetched every " + minutes + " minutes!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Location will be fetched every " + minutes + " minute!", Toast.LENGTH_SHORT).show();
+                }
             }
         } else {
             cancelAlarm();
