@@ -76,5 +76,5 @@
     <string name="login_activity_button">Login using Google</string>
     <string name="settings_activity_toggle">Location Service</string>
     <string name="interval_label">Interval (minutes) (1–10)</string>
-    <string name="app_help">Disclaimer: While active, your location, your GMail address and OS version will be sent. When processing the coordinates, NO ASSOCIATION between GPS coordinates and email address will be made. The email address is used to track contribution.</string>
+    <string name="app_help">Disclaimer: While active, your location and OS version will be sent.</string>
 </resources>

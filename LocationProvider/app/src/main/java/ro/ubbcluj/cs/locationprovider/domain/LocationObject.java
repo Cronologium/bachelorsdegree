@@ -14,14 +14,12 @@ import java.util.Map;
 
 @IgnoreExtraProperties
 public class LocationObject {
-    private String username;
     private double latitude;
     private double longitude;
     private String dateTime;
     private int apiLevel;
 
-    public LocationObject(String username, double latitude, double longitude, String dateTime, int apiLevel) {
-        this.username = username;
+    public LocationObject(double latitude, double longitude, String dateTime, int apiLevel) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.dateTime = dateTime;
@@ -34,14 +32,6 @@ public class LocationObject {
 
     public void setDateTime(String dateTime) {
         this.dateTime = dateTime;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public double getLatitude() {
@@ -78,8 +68,6 @@ public class LocationObject {
         if (Double.compare(that.latitude, latitude) != 0) return false;
         if (Double.compare(that.longitude, longitude) != 0) return false;
         if (apiLevel != that.apiLevel) return false;
-        if (username != null ? !username.equals(that.username) : that.username != null)
-            return false;
         return dateTime != null ? dateTime.equals(that.dateTime) : that.dateTime == null;
     }
 
@@ -87,9 +75,8 @@ public class LocationObject {
     public int hashCode() {
         int result;
         long temp;
-        result = username != null ? username.hashCode() : 0;
         temp = Double.doubleToLongBits(latitude);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = (int) (temp ^ (temp >>> 32));
         temp = Double.doubleToLongBits(longitude);
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         result = 31 * result + (dateTime != null ? dateTime.hashCode() : 0);
@@ -100,7 +87,6 @@ public class LocationObject {
     @Exclude
     public Map<String, Object> toMap() {
         Map<String, Object> result = new HashMap<>();
-        result.put("username", username);
         result.put("longitude", longitude);
         result.put("latitude", latitude);
         result.put("datetime", dateTime);
