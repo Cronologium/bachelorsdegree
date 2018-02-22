@@ -29,6 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient gsc;
     private FirebaseAuth auth;
     private static final int RC_SIGN_IN = 9001;
+    private static final int SETTINGS_ACTIVITY = 9002;
     private final String TAG = "LoginActivity";
 
     @Override
@@ -48,9 +49,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            startActivity(new Intent(LoginActivity.this, SettingsActivity.class));
-        }
         changeUiToReflectNormalState();
     }
 
@@ -69,36 +67,31 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void startLogin(View view) {
-
-        Intent signInIntent = gsc.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-        changeUiToReflectAttemptLogin();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            startActivityForResult(new Intent(LoginActivity.this, SettingsActivity.class), SETTINGS_ACTIVITY);
+        } else {
+            Intent signInIntent = gsc.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+            changeUiToReflectAttemptLogin();
+        }
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
-        //Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = auth.getCurrentUser();
                             changeUiToReflectNormalState();
-                            startActivity(new Intent(LoginActivity.this, SettingsActivity.class));
-                            //finish();
+                            startActivityForResult(new Intent(LoginActivity.this, SettingsActivity.class), SETTINGS_ACTIVITY);
                         } else {
-                            // If sign in fails, display a message to the user.
                             Log.e(TAG, "signInWithCredential:failure", task.getException());
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                             changeUiToReflectNormalState();
-                            //finish();
                         }
-                        // ...
                     }
                 });
     }
@@ -122,6 +115,12 @@ public class LoginActivity extends AppCompatActivity {
                 changeUiToReflectNormalState();
                 // ...
             }
+        }
+        if (requestCode == SETTINGS_ACTIVITY) {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         }
     }
 }

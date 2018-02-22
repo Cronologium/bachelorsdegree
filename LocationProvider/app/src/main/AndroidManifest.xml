@@ -23,8 +23,6 @@
         <activity android:name=".SettingsActivity" />
 
         <service android:name=".service.LocationProvider" />
-        <service android:name=".service.OreoLocationProvider"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <receiver
             android:name=".receivers.AlarmReceiver"

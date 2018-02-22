@@ -75,11 +75,6 @@ public class LocationProvider extends IntentService {
         Log.w(TAG, "Preparing to fetch location!");
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         locationListener = new FirebaseLocationProvider();
-        if (ActivityCompat.checkSelfPermission(LocationProvider.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(LocationProvider.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "Missing permissions");
-            return;
-        }
         boolean gps_enabled = false;
         try {
             gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);

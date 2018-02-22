@@ -3,13 +3,11 @@ package ro.ubbcluj.cs.locationprovider;
 import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -23,27 +21,22 @@ import android.widget.Toast;
 
 import ro.ubbcluj.cs.locationprovider.receivers.AlarmReceiver;
 
-import static java.lang.Integer.max;
-import static java.lang.Integer.min;
-
 public class SettingsActivity extends AppCompatActivity {
     private final String PREFERENCES_FILE = "LocationProvider";
     private boolean toggled;
     private final String TAG = "SettingsActivity";
     private final int PERMISSION_LOCATION_REQUEST = 3124;
-    private final int jobId = 1;
     private final int ONE_SECOND = 1000;
     private final int ONE_MINUTE = 60 * ONE_SECOND;
     private int minutes;
     private SharedPreferences locationProviderSettings;
-    private JobScheduler jobScheduler;
+    private LocationManager locationManagerTester;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
         locationProviderSettings = getSharedPreferences(PREFERENCES_FILE, 0);
         toggled = locationProviderSettings.getBoolean("location", false);
         minutes = locationProviderSettings.getInt("interval", 1);
@@ -70,26 +63,43 @@ public class SettingsActivity extends AppCompatActivity {
         return (null != PendingIntent.getBroadcast(this, AlarmReceiver.REQUEST_CODE, intent, PendingIntent.FLAG_NO_CREATE));
     }
 
-    public void scheduleAlarm() {
+    private void deactivateAndShowError(String message) {
+        CheckBox check = findViewById(R.id.checkBox);
+        check.setChecked(false);
+        toggled = false;
+        SharedPreferences.Editor editor = locationProviderSettings.edit();
+        editor.putBoolean("location", toggled);
+        editor.apply();
+        if (message != null) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        }
+    }
 
+    public void scheduleAlarm() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
             || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             {
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                             PERMISSION_LOCATION_REQUEST);
+                    deactivateAndShowError(null);
                 } else {
-                    Toast.makeText(this, "Go to Settings->App->LocationProvider->Permissions and select location to true", Toast.LENGTH_LONG).show();
+                    deactivateAndShowError("Go to Settings->App->LocationProvider->Permissions and select location to true");
                 }
-                CheckBox check = findViewById(R.id.checkBox);
-                check.setChecked(false);
-                toggled = false;
-                SharedPreferences.Editor editor = locationProviderSettings.edit();
-                editor.putBoolean("location", toggled);
-                editor.apply();
                 return;
             }
+        }
+        locationManagerTester = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        boolean gpsEnabled = false;
+        try {
+            gpsEnabled = locationManagerTester.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ignored) {
+
+        }
+        if (!gpsEnabled) {
+            deactivateAndShowError("Please activate the gps service first!");
+            return;
         }
         if (isAlarmActive()) {
             Log.d(TAG, "Alarm is already active!");

@@ -1,8 +1,5 @@
 package ro.ubbcluj.cs.locationprovider.database;
 
-import android.app.job.JobParameters;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,14 +15,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
 import ro.ubbcluj.cs.locationprovider.domain.LocationObject;
-import ro.ubbcluj.cs.locationprovider.service.OreoLocationProvider;
 
 /**
  * Created by tudor on 17.02.2018.
@@ -37,8 +30,6 @@ public class FirebaseLocationProvider implements LocationListener {
     private FirebaseUser user;
     private Thread thread;
     private LocationManager locationManager;
-    private JobParameters params;
-    private OreoLocationProvider oreoLocationProvider;
 
     public FirebaseLocationProvider() {
         user = FirebaseAuth.getInstance().getCurrentUser();
@@ -62,12 +53,6 @@ public class FirebaseLocationProvider implements LocationListener {
         this.thread = thread;
         this.locationManager = locationManager;
     }
-    public void sendData(Thread thread, LocationManager locationManager, OreoLocationProvider oreoLocationProvider, JobParameters params) {
-        this.thread = thread;
-        this.locationManager = locationManager;
-        this.oreoLocationProvider = oreoLocationProvider;
-        this.params = params;
-    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -78,11 +63,6 @@ public class FirebaseLocationProvider implements LocationListener {
         }
         this.locationManager.removeUpdates(this);
         Log.d(TAG, "Attempting to close thread");
-        if (oreoLocationProvider != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                oreoLocationProvider.jobFinished(params, false);
-            }
-        }
         this.thread.interrupt();
     }
 
