@@ -40,14 +40,6 @@ public class LocationProvider extends IntentService {
         super(name);
     }
 
-    public void stop() {
-        locationManager.removeUpdates(locationListener);
-        Looper looper = Looper.myLooper();
-        if (looper != null) {
-            looper.quit();
-        }
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -73,6 +65,7 @@ public class LocationProvider extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.w(TAG, "Preparing to fetch location!");
+        int gps_locations = intent.getIntExtra("locations", 1);
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         locationListener = new FirebaseLocationProvider();
         boolean gps_enabled = false;
@@ -95,7 +88,7 @@ public class LocationProvider extends IntentService {
             }
         };
         Thread thread = new Thread(runnable);
-        ((FirebaseLocationProvider) locationListener).sendData(thread, locationManager);
+        ((FirebaseLocationProvider) locationListener).sendData(thread, locationManager, gps_locations);
         thread.start();
         Log.d(TAG, "Location manager is done!");
     }

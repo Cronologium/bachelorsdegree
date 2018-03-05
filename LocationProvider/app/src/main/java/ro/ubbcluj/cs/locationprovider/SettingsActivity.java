@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import ro.ubbcluj.cs.locationprovider.receivers.AlarmReceiver;
+import ro.ubbcluj.cs.locationprovider.service.LocationProvider;
 
 public class SettingsActivity extends AppCompatActivity {
     private final String PREFERENCES_FILE = "LocationProvider";
@@ -125,6 +126,43 @@ public class SettingsActivity extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
         return PendingIntent.getBroadcast(this, AlarmReceiver.REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    public void startBlitzkriegMode(View view) {
+        Context context = getApplicationContext();
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                            PERMISSION_LOCATION_REQUEST);
+                } else {
+                    Toast.makeText(context, "Go to Settings->App->LocationProvider->Permissions and select location to true", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+        }
+        locationManagerTester = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        boolean gpsEnabled = false;
+        try {
+            gpsEnabled = locationManagerTester.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ignored) {
+
+        }
+        if (!gpsEnabled) {
+            Toast.makeText(context, "Please activate the gps service first!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(context, LocationProvider.class);
+        intent.putExtra("locations", 30);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
+        Toast.makeText(context, "Activated blitzkrieg mode! Do not close app from tasks or else data will be lost!", Toast.LENGTH_LONG).show();
     }
 
     public void switchToggle(View view) {

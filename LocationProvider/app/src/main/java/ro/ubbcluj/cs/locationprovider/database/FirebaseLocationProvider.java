@@ -30,6 +30,8 @@ public class FirebaseLocationProvider implements LocationListener {
     private FirebaseUser user;
     private Thread thread;
     private LocationManager locationManager;
+    private int gps_locations;
+    private int locations_left;
 
     public FirebaseLocationProvider() {
         user = FirebaseAuth.getInstance().getCurrentUser();
@@ -49,9 +51,11 @@ public class FirebaseLocationProvider implements LocationListener {
         });
     }
 
-    public void sendData(Thread thread, LocationManager locationManager) {
+    public void sendData(Thread thread, LocationManager locationManager, int gps_locations) {
         this.thread = thread;
         this.locationManager = locationManager;
+        this.gps_locations = gps_locations;
+        this.locations_left = this.gps_locations;
     }
 
     @Override
@@ -61,9 +65,13 @@ public class FirebaseLocationProvider implements LocationListener {
             LocationObject locationObject = new LocationObject(location.getLatitude(), location.getLongitude(), (new SimpleDateFormat("yyyy-MM-dd|HH:mm:ss")).format(new Date()), Build.VERSION.SDK_INT);
             firebaseDatabase.child(user.getUid() + locationObject.getDateTime()).setValue(locationObject);
         }
-        this.locationManager.removeUpdates(this);
-        Log.d(TAG, "Attempting to close thread");
-        this.thread.interrupt();
+        this.locations_left -= 1;
+        Log.d(TAG, "Locations left: " + this.locations_left);
+        if (this.locations_left == 0) {
+            this.locationManager.removeUpdates(this);
+            Log.d(TAG, "Attempting to close thread");
+            this.thread.interrupt();
+        }
     }
 
     @Override

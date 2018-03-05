@@ -77,4 +77,6 @@
     <string name="settings_activity_toggle">Location Service</string>
     <string name="interval_label">Interval (minutes) (1–10)</string>
     <string name="app_help">Disclaimer: While active, your location and OS version will be sent.</string>
+    <string name="blitzkrieg_button">Blitzkrieg</string>
+    <string name="blitzkrieg_warning">Warning: This will activate a service that will send 30 gps coordinates to the server ASAP. Do not close app after running. Minimizing is OK. Please do not spam while at home :)</string>
 </resources>
