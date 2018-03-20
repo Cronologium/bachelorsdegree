@@ -18,6 +18,7 @@ public class AlarmReceiver extends BroadcastReceiver{
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent i = new Intent(context, LocationProvider.class);
+        i.putExtra("duration", intent.getLongExtra("duration", 0));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(i);
         } else {

@@ -17,6 +17,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import ro.ubbcluj.cs.locationprovider.domain.LocationObject;
 
@@ -30,8 +31,8 @@ public class FirebaseLocationProvider implements LocationListener {
     private FirebaseUser user;
     private Thread thread;
     private LocationManager locationManager;
-    private int gps_locations;
-    private int locations_left;
+    private Date startDate;
+    private long duration;
 
     public FirebaseLocationProvider() {
         user = FirebaseAuth.getInstance().getCurrentUser();
@@ -51,23 +52,24 @@ public class FirebaseLocationProvider implements LocationListener {
         });
     }
 
-    public void sendData(Thread thread, LocationManager locationManager, int gps_locations) {
+    public void sendData(Thread thread, LocationManager locationManager, long duration) {
         this.thread = thread;
         this.locationManager = locationManager;
-        this.gps_locations = gps_locations;
-        this.locations_left = this.gps_locations;
+        this.startDate = new Date();
+        this.duration = duration;
     }
 
     @Override
     public void onLocationChanged(Location location) {
+        long currentElapsedTime = TimeUnit.MINUTES.convert((new Date()).getTime() - this.startDate.getTime(),TimeUnit.MILLISECONDS);
         if (location != null) {
-            Log.d(TAG, "Current location is " + location.getLongitude() + " -- " + location.getLatitude());
+            //Log.d(TAG, "Current location is " + location.getLongitude() + " -- " + location.getLatitude());
             LocationObject locationObject = new LocationObject(location.getLatitude(), location.getLongitude(), (new SimpleDateFormat("yyyy-MM-dd|HH:mm:ss")).format(new Date()), Build.VERSION.SDK_INT);
-            firebaseDatabase.child(user.getUid() + locationObject.getDateTime()).setValue(locationObject);
+            Log.d(TAG, "Elapsed time since service started: " + currentElapsedTime + " time left:" + (duration - currentElapsedTime));
+            Log.d(TAG, locationObject.toMap().toString());
+            //firebaseDatabase.child(user.getUid() + locationObject.getDateTime()).setValue(locationObject);
         }
-        this.locations_left -= 1;
-        Log.d(TAG, "Locations left: " + this.locations_left);
-        if (this.locations_left == 0) {
+        if (currentElapsedTime >= duration) {
             this.locationManager.removeUpdates(this);
             Log.d(TAG, "Attempting to close thread");
             this.thread.interrupt();

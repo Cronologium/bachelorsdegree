@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +19,8 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 import ro.ubbcluj.cs.locationprovider.receivers.AlarmReceiver;
 import ro.ubbcluj.cs.locationprovider.service.LocationProvider;
@@ -46,12 +49,16 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+            finish();
         Log.d(TAG, "Starting the application with the provider on " + toggled);
         Log.d(TAG, "Alarm status: " + isAlarmActive());
         CheckBox check = findViewById(R.id.checkBox);
         check.setChecked(toggled);
         EditText editText = findViewById(R.id.editText);
         editText.setText(String.valueOf(minutes));
+        EditText editText3 = findViewById(R.id.editText3);
+        editText3.setText(String.valueOf(20));
         if (toggled) {
             scheduleAlarm();
         } else {
@@ -105,7 +112,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (isAlarmActive()) {
             Log.d(TAG, "Alarm is already active!");
         }
-        final PendingIntent pIntent = getAlarmIntent();
+        final PendingIntent pIntent = getAlarmIntent(-1);
         long firstMillis = System.currentTimeMillis();
         AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis, (long) ONE_MINUTE * minutes, pIntent);
@@ -116,14 +123,16 @@ public class SettingsActivity extends AppCompatActivity {
         if (!isAlarmActive()) {
             Log.d(TAG, "Alarm is already inactive");
         }
-        final PendingIntent pIntent = getAlarmIntent();
+        final PendingIntent pIntent = getAlarmIntent(-1);
         AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         alarm.cancel(pIntent);
         Log.d(TAG, "Alarm has been canceled");
     }
 
-    private PendingIntent getAlarmIntent() {
+    private PendingIntent getAlarmIntent(long duration) {
         Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+        if (duration != -1)
+            intent.putExtra("duration", duration);
         return PendingIntent.getBroadcast(this, AlarmReceiver.REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
@@ -154,15 +163,16 @@ public class SettingsActivity extends AppCompatActivity {
             Toast.makeText(context, "Please activate the gps service first!", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        Intent intent = new Intent(context, LocationProvider.class);
-        intent.putExtra("locations", 30);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            context.startService(intent);
-        }
-        Toast.makeText(context, "Activated blitzkrieg mode! Do not close app from tasks or else data will be lost!", Toast.LENGTH_LONG).show();
+        long duration;
+        EditText editText = findViewById(R.id.editText3);
+        String minutesString = editText.getText().toString();
+        duration = Integer.parseInt(minutesString);
+        duration = Math.max(0, duration);
+        final PendingIntent pIntent = getAlarmIntent(duration);
+        AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        alarm.set(AlarmManager.RTC_WAKEUP, SystemClock.elapsedRealtime() + 15 * 1000, pIntent);
+        Toast.makeText(this, "Please DO NOT KILL THE APP in the next " + duration + " minutes", Toast.LENGTH_LONG).show();
+        finish();
     }
 
     public void switchToggle(View view) {
