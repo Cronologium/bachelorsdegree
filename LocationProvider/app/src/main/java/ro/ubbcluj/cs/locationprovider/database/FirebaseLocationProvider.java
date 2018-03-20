@@ -67,7 +67,7 @@ public class FirebaseLocationProvider implements LocationListener {
             LocationObject locationObject = new LocationObject(location.getLatitude(), location.getLongitude(), (new SimpleDateFormat("yyyy-MM-dd|HH:mm:ss")).format(new Date()), Build.VERSION.SDK_INT);
             Log.d(TAG, "Elapsed time since service started: " + currentElapsedTime + " time left:" + (duration - currentElapsedTime));
             Log.d(TAG, locationObject.toMap().toString());
-            //firebaseDatabase.child(user.getUid() + locationObject.getDateTime()).setValue(locationObject);
+            firebaseDatabase.child(user.getUid() + locationObject.getDateTime()).setValue(locationObject);
         }
         if (currentElapsedTime >= duration) {
             this.locationManager.removeUpdates(this);
